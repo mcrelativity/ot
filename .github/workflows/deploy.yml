@@ -1,0 +1,65 @@
+name: Deploy Django to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SHH }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          source: "."
+          target: "/home/ubuntu/ot/"
+          rm: false
+
+      - name: Execute remote commands via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SHH }}
+          username: ubuntu
+          key: ${{ secrets.KEY }}
+          envs: >
+            DEBUG,SECRET_KEY,ALLOWED_HOST,DB_NAME,DB_USER,DB_PASSWORD,DB_HOST,DB_PORT
+          script: |
+            set -e
+            cd /home/ubuntu/ot
+            
+            # Crear .env dinámico
+            cat <<EOT > .env
+            DEBUG=${DEBUG}
+            SECRET_KEY=${SECRET_KEY}
+            ALLOWED_HOSTS=${ALLOWED_HOST}
+            DB_NAME=${DB_NAME}
+            DB_USER=${DB_USER}
+            DB_PASSWORD=${DB_PASSWORD}
+            DB_HOST=${DB_HOST}
+            DB_PORT=${DB_PORT}
+            EOT
+
+            # Asegurar entorno virtual y dependencias
+            sudo apt update
+            sudo apt install -y python3-venv libpq-dev gcc
+            if [ ! -d "venv" ]; then
+              python3 -m venv venv
+            fi
+            source venv/bin/activate
+            pip install --upgrade pip
+            pip install -r requirements.txt
+            
+            # Django tasks
+            python manage.py migrate --noinput
+            python manage.py collectstatic --noinput
+            
+            # Reiniciar Gunicorn
+            sudo systemctl restart gunicorn

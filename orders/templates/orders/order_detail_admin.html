@@ -1,0 +1,80 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}Detalle de Orden {{ order.tracking_code }}{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'dashboard' %}" class="text-muted text-decoration-none mb-2 d-inline-block">&larr; Volver al Dashboard</a>
+            <h2>Orden: <span class="text-info">{{ order.tracking_code }}</span></h2>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'order_update' order.pk %}" class="btn btn-primary">Editar Orden</a>
+            <a href="{% url 'order_delete' order.pk %}" class="btn btn-danger">Eliminar</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="glass-container h-100">
+                <h4 class="mb-4 pb-2 border-bottom" style="border-color: var(--border-color) !important;">Detalles</h4>
+                
+                <div class="mb-4">
+                    <label class="text-muted small mb-1">Cliente</label>
+                    <div class="fs-5 fw-medium">{{ order.client }}</div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="text-muted small mb-1">Estado Actual</label>
+                    <div><span class="badge badge-{{ order.status|lower }} fs-6">{{ order.status }}</span></div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="text-muted small mb-1">Fecha de Creación</label>
+                    <div>{{ order.created_at|date:"d/m/Y H:i" }}</div>
+                </div>
+
+                <div>
+                    <label class="text-muted small mb-1">Descripción</label>
+                    <p class="mb-0">{{ order.description|linebreaks }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-7">
+            <div class="glass-container h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
+                    <h4 class="mb-0">Hitos de Seguimiento</h4>
+                    <a href="{% url 'add_tracking' order.pk %}" class="btn btn-sm btn-primary">+ Agregar Hito</a>
+                </div>
+                
+                {% if order.trackings.all %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="background: transparent;">
+                            <thead style="background: rgba(0,0,0,0.2);">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción del Avance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for tracking in order.trackings.all|dictsortreversed:"date" %}
+                                <tr>
+                                    <td class="text-nowrap">{{ tracking.date|date:"d/m/Y H:i" }}</td>
+                                    <td>{{ tracking.description }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-5 text-muted">
+                        No hay hitos registrados para esta orden.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

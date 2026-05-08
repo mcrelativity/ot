@@ -1,0 +1,48 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}Dashboard Administrador{% endblock %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1>Dashboard de Órdenes</h1>
+        <a href="{% url 'order_create' %}" class="btn btn-primary">+ Nueva Orden</a>
+    </div>
+
+    <div class="glass-container p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0" style="background: transparent;">
+                <thead style="background: rgba(0,0,0,0.2);">
+                    <tr>
+                        <th class="ps-4">Código OT</th>
+                        <th>Cliente</th>
+                        <th>Fecha Creación</th>
+                        <th>Estado</th>
+                        <th class="pe-4 text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td class="ps-4 font-monospace text-info">{{ order.tracking_code }}</td>
+                        <td class="fw-medium">{{ order.client }}</td>
+                        <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                        <td>
+                            <span class="badge badge-{{ order.status|lower }}">{{ order.status }}</span>
+                        </td>
+                        <td class="pe-4 text-end">
+                            <a href="{% url 'order_detail_admin' order.pk %}" class="btn btn-sm btn-secondary me-2">Ver / Hitos</a>
+                            <a href="{% url 'order_update' order.pk %}" class="btn btn-sm btn-primary">Editar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">No hay órdenes de trabajo registradas.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
